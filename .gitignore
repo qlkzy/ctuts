@@ -1,0 +1,10 @@
+*.fdb_latexmk
+*.lol
+ctut.sh
+*.stdout
+*.stderr
+*.toc
+*.aux
+*.log
+*.pdf
+hello

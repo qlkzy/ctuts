@@ -1,0 +1,15 @@
+:tool
+gcc
+make
+nm
+ar
+ld
+gdb
+
+:kw
+static
+
+:type
+int
+unsigned
+short
