@@ -1,0 +1,390 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{titling}
+\title{An Introduction to Programming in C}
+
+\author{David Morris}
+
+\usepackage[cm]{fullpage}
+\usepackage[small,compact]{titlesec}
+
+\usepackage{fancyhdr}
+\fancypagestyle{fancyplain}{
+  \fancyhf{}
+  \fancyhead[L]{\leftmark}
+  \fancyfoot[R]{\thepage}
+  \fancyfoot[L]{\theauthor}
+  \setlength{\headheight}{15pt}
+  \setlength{\headsep}{15pt}
+}
+\pagestyle{fancyplain}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[R]{\thepage}
+  \setlength{\headheight}{0pt}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{bashful}
+
+\lstset{
+  basicstyle=\ttfamily,
+  showstringspaces=false,
+  nolol=true
+}
+
+\lstdefinestyle{drmCodeStyle}{frame=lines}
+
+\newcommand{\drmcode}[3]{\begin{minipage}{\columnwidth}\lstinputlisting[language={#1},style=drmCodeStyle,caption={#2},name={},nolol=false]{#3}\end{minipage}}
+\newcommand{\ccode}[2]{\drmcode{C}{#1}{#2.c}}
+\newcommand{\perlcode}[2]{\drmcode{Perl}{#1}{#2.pl}}
+\newcommand{\makecode}[2]{\drmcode{Make}{#1}{#2}}
+
+\newenvironment{inlinec}
+{ \begin{minipage}[columnwidth]\begin{lstlisting}[language=C] }
+{ \end{lstlisting}\end{minipage} }
+
+\newcommand{\kw}[1]{\texttt{#1}}
+\newcommand{\key}[1]{\texttt{#1}}
+\newcommand{\cfile}[1]{\texttt{#1}}
+\newcommand{\tool}[1]{\texttt{#1}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\lstlistoflistings
+
+\section{Introduction}
+
+This document is an introduction to programming using the C language
+and ecosystem. It assumes that the reader is previously familiar with
+one or more programming languages, and will not appreciate yet another
+introduction to \texttt{if} statements and the strange and wonderful
+concept of a `variable'.
+
+\section{Terminal Interaction}
+
+We will make extensive use of a \textsc{Unix} or *NIX
+shell. \texttt{Bash} is used throughout; it is assumed that anyone
+running anything more exotic is capable of dealing with the
+differences.
+
+Shell commands and output are presented as follows:
+
+\bash[script,stdout]
+echo "Hello"
+\END
+
+\noindent
+In other words, an instruction to \emph{run} a command is presented
+as:
+
+\bash[script]
+echo "Hello"
+\END
+
+\noindent
+note that the \texttt{\%} sign signifies a shell prompt, and should
+not be typed into the terminal. Command output is presented as:
+
+\bash[stdout]
+echo "Hello"
+\END
+
+\noindent
+In almost all cases, 
+
+\section{Hello World}
+
+We should begin by confirming that the C programming environment on
+your machine is reasonably sane. For this, we use the traditional
+``Hello, World'' program. Enter the following program into the text
+editor of your choice, and save it as \cfile{hello.c}.
+
+\ccode{\cfile{hello.c}}{hello}
+
+\noindent
+Enter the following command into your terminal to compile
+the program:
+
+\bash[script,stdout]
+gcc -o hello hello.c
+\END
+
+\noindent
+and finally run the program with:
+
+\bash[script, stdout]
+./hello
+\END
+
+\noindent{}
+If you get error messages, or the output does not appear as shown,
+there is little point continuing until these issues have been
+resolved. It is assumed that anyone reading this document has
+sufficient intelligence and network bandwidth to resolve problems here
+on their own.
+
+\section{The Compilation Process}
+
+
+
+\subsection{Preprocessing}
+
+To combine modules at the source level, C uses a preprocessor (often
+called, somewhat confusingly, \kw{CPP}). This preprocessor is
+\emph{purely textual} --- that is, it works on characters, lines and
+files, and has essentially no understanding of a C source file.
+
+
+
+Generally, if there are two roughly-equivalent ways of doing something
+and one uses the preprocessor, use the other method.
+
+\subsubsection{\kw{#include}}
+
+The most common (or inevitable) use of the preprocessor is to
+`include' other files into a source file. We saw this in \cfile{hello.c}
+--- the \verb!#include <stdio.h>! line told the preprocessor:
+``replace this line with the contents of the file \cfile{stdio.h}, from
+the system search path''
+
+First, let's see what happens if we omit this line:
+
+\ccode{\cfile{hellonoinc.c}}{hellonoinc}
+
+\bash[script,stdout]
+gcc -o hellonoinc hellonoinc.c
+\END
+
+\noindent
+This complains about an ``incompatible implicit declaration of
+\kw{printf}''. What is happening here? A couple of things.
+
+The first is that printf is declared in \cfile{stdio.h}, so removing the
+\verb!#include! line has removed the declaration. A \emph{declaration}
+is a line like:
+
+\begin{inlinec}
+  int main(int argc, char *argv[])
+\end{inlinec}
+
+\noindent
+This tells the compiler: ``there is a function \kw{main}, which
+returns an \kw{int}, and which takes as arguments one \kw{int} and one
+array of \kw{char} pointers''.
+
+A declaration can appear on its own, in which case it must be followed
+by a semicolon:
+
+\begin{inlinec}
+  int main(int argc, char *argv[]);
+\end{inlinec}
+
+\noindent
+In addition, any \emph{definition} is also a declaration:
+
+\begin{inlinec}
+  int main(int argc, char *argv[]);
+  {
+    return 0;
+  }
+\end{inlinec}
+
+\noindent
+You can \emph{declare} something as many times as you like (so long as
+all the definitions agree) but you may only \emph{define} it
+once. Don't worry too much about this now --- it will make more sense
+when we talk about modules.
+
+Back to our \verb!#include!-less program. What is happening? The
+compiler has no declaration for \kw{printf}, and yet it is compiling
+the file anyway! You can run the file with:
+
+\bash[script,stdout]
+./hellonoinc
+\END
+
+\noindent
+It runs perfectly!
+
+What is actually going on here is that the compiler has an `extra'
+declaration for \kw{printf}, because it's part of the standard
+library, and is in fact handled by a special case. However, it is
+treated like a normal C function (and there is no reason it could not
+be one), and so it needs a declaration.
+
+The other thing that is going on here is that there is an old
+backwards-compatability rule in the C standard that functions which
+are referenced without having been declared are give an
+\emph{implicit} declaration, which always has the signature:
+
+\begin{lstlisting}[language=C,escapeinside={\%\{}{\%\}}]
+  int %{name%}();
+\end{inlinec}
+
+\noindent
+That is, a function taking no arguments and returning an \kw{int}.
+
+When we try to compile our file, this implicit declaration gets
+generated \emph{before} the compiler notices that it already knows
+what \kw{printf} is; then the implicit and special declarations
+collide, which is what generates the warning.
+
+You might think that having two completely incompatible ideas of what
+a function should be is grounds for more than a `warning'. In this
+case, there were no ill effects, but it is very possible for this kind
+of thing to produce very strange and hard-to-track down bugs. In this
+case, we saw the warning and can fix it; when are compiling dozens of
+source files into one program, it is easy to miss warnings like this.
+
+For this reason, I (and most other C programmers) prefer to enforce a
+``zero warnings'' rule - that is, code must compile cleanly with no
+warnings. This is almost always possible; in the cases where it isn't
+(because you have a legitimate reason to do something the compiler
+doesn't like) then you turn off that specific warning for that specific
+case.
+
+We can get the compiler to enforce our ``zero warnings'' rule by
+adding the \kw{-Werror} flag to the compiler command line:
+
+\bash[script,stdout]
+gcc -Werror -o hellonoinc hellonoinc.c
+\END
+
+\noindent
+Now the compiler refuses to proceed until we deal with the warning.
+
+While we're at it, we might as well add in a couple more flags that
+turn on additional warnings, so that the compiler will tell us about
+other dodgy constructs. These flags are \kw{-Wall} and \kw{-Wextra}
+(for backwards compatability reasons, \kw{-Wall} does not
+\emph{actually} turn on \emph{all} warnings).
+
+Our full command line (for our original program) now looks like:
+
+\bash[script,stdout]
+gcc -Wall -Wextra -Werror -o hello hello.c
+\END
+
+\noindent
+That's getting to be quite a lot of typing. In a little while (in
+Section \ref{sec:make}) we will look at a tool that saves us all of
+this typing, as well as making it easy to remove specific warnings for
+particular files, and saving us lots of time as well.
+
+For now, however, those new to Linux will be pleased to learn that
+\kw{bash} has a command history feature. You can go backwards and
+forwards in this history using the \key{Up} and \key{Down} arrow keys;
+for commands you executed a while ago, you can use \key{Ctrl}+\key{R}
+to search incrementally backwards through the command history (each
+time you press \key{Ctrl}+\key{R}, it will go backwards to the next
+previous match).
+
+Anyway, back to \verb!#include!. You can see what the \verb!#include!
+  line is actually doing using the \kw{-E} option to \tool{gcc}. This
+  tells \tool{gcc} to stop after the preprocessing stage; if you don't
+  provide a \kw{-o} option, the preprocessed file will be sent to
+  \kw{STDOUT} (in this case, your terminal).
+
+Run the command:
+
+\bash[script]
+gcc -E hello.c
+\END
+
+\noindent
+This will produce an enormous amout of guff, most of which is quite
+inscrutable. \cfile{stdio.h} pulls in a number of other files to
+provide particular types and other features it depends on (if you're
+interested, you can probably find it at \cfile{/usr/include/stdio.h}).
+
+However, if we \tool{grep} the output, we can find what we're looking
+for:
+
+\bash[script,stdout]
+gcc -E hello.c | grep printf
+\END
+
+\noindent
+This list contains a few other \kw{printf}-ish functions, and the line
+for our \emph{invocation} of printf, but you can clearly see that the
+file now contains the (correct) definition of \kw{printf}.
+
+\subsubsection{Conditional Compilation}
+
+\subsubsection{Macros}
+
+\subsection{Compilation}
+
+\subsection{Linking}
+
+\subsection{Static Libraries}
+
+\subsection{\tool{make}}
+\label{sec:make}
+
+\section{The C Memory Model}
+
+\subsection{Pointers}
+
+\subsection{Arrays}
+
+\subsection{Allocation}
+
+\section{Debugging}
+
+\section{Modules}
+
+There are a number of other ways to create modules in C (the advantage
+of having to do everything manually is that there can be a lot of
+flexibility in how you do it). However, these two are the most common,
+so we will look at these first.
+
+\subsection{Single-Instance Modules}
+
+For both of our module examples, we will be recreating the
+standard-library function \kw{strtok}. \kw{strtok} provides a (fairly
+limited) mechanism for converting strings into tokens.
+
+\kw{strtok} is called like this:
+
+\begin{inlinec}
+  char *str = "These are some words";
+  char *tok = strtok(str, " ");
+\end{inlinec}
+
+This will cause \kw{tok} to point to a string containing
+``These''. After the first invocation, we can call \kw{strtok} like
+this:
+
+\begin{inlinec}
+  tok = strtok(NULL, " ");
+\end{inlinec}
+
+and \kw{strtok} will continue tokenising the same string (you have to
+keep providing the delimiters).
+
+If, instead, we had done this:
+
+\begin{inlinec}
+  char *str = "length,width,height;roll,pitch,yaw";
+  char *tok = strtok(str, ",;");
+\end{inlinec}
+
+And kept calling \kw{strtok} with \kw{NULL} and the same delimiters,
+we would get, in turn, the strings ``length'', ``width'', ``height'',
+``roll'', ``pitch'', ``yaw''.
+
+Roughly, therefore, what \kw{strtok} does is split the its first
+argument on \kw{any} of the characters in its second argument.
+
+\subsection{Multiple-Instance Modules}
+
+\end{document}
