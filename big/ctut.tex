@@ -1,0 +1,344 @@
+\documentclass[a4paper,10pt]{report}
+
+%% \documentclass[a4paper,10pt,twocolumn]{article}
+\usepackage{titling}
+\title{An Introduction to Programming in C}
+
+\author{David Morris}
+
+\usepackage[cm]{fullpage}
+\usepackage[small,compact]{titlesec}
+
+%% \usepackage{fancyhdr}
+%% \fancypagestyle{fancyplain}{
+%%   \fancyhf{}
+%%   \fancyhead[L]{\leftmark}
+%%   \fancyfoot[R]{\thepage}
+%%   \fancyfoot[L]{\theauthor}
+%%   \setlength{\headheight}{15pt}
+%%   \setlength{\headsep}{15pt}
+%% }
+%% \pagestyle{fancyplain}
+
+%% \fancypagestyle{plain}{
+%%   \fancyhf{}
+%%   \fancyfoot[R]{\thepage}
+%%   \setlength{\headheight}{0pt}
+%%   \renewcommand{\headrulewidth}{0pt}
+%% }
+
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{bashful}
+
+\lstset{
+  basicstyle=\ttfamily,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  nolol=true
+}
+
+\lstdefinestyle{drmCodeStyle}{frame=lines}
+
+\newcommand{\drmcode}[3]{\begin{minipage}{\columnwidth}\lstinputlisting[language={#1},style=drmCodeStyle,caption={#2},name={},nolol=false]{#3}\end{minipage}}
+\newcommand{\ccode}[2]{\drmcode{C}{#1}{#2.c}}
+\newcommand{\largeccode}[2]{\lstinputlisting[language=C,style=drmCodeStyle,caption={#2},name={},nolol=false]{#2.c}}
+\newcommand{\perlcode}[2]{\drmcode{Perl}{#1}{#2.pl}}
+\newcommand{\makecode}[2]{\drmcode{Make}{#1}{#2}}
+\newcommand{\plaincode}[2]{\drmcode{}{#1}{#2}}
+
+%% \bash
+%% ./kwgen.pl keywords.txt > keywords.tex
+%% \END
+
+%% \input{keywords.tex}
+
+\newcommand{\kw}[1]{\texttt{#1}}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\lstlistoflistings
+
+\part{Basics}
+
+\chapter{Introduction}
+
+This document is an introduction to programming using the C language
+and ecosystem. It assumes that the reader is previously familiar with
+one or more programming languages, and will not appreciate yet another
+introduction to \texttt{if} statements and the strange and wonderful
+concept of a `variable'.
+
+\section{Conventions used in this document}
+
+\subsection{Terminal Interaction}
+
+We will make extensive use of a \textsc{Unix} or *NIX
+shell. \texttt{Bash} is used throughout; it is assumed that anyone
+running anything more exotic is capable of dealing with the
+differences.
+
+Shell commands and output are presented as follows:
+
+\bash[script,stdout]
+echo "Hello"
+\END
+
+\noindent
+In other words, an instruction to \emph{run} a command is presented
+as:
+
+\bash[script]
+echo "Hello"
+\END
+
+\noindent
+note that the \texttt{\%} sign signifies a shell prompt, and should
+not be typed into the terminal. Command output is presented as:
+
+\bash[stdout]
+echo "Hello"
+\END
+
+\noindent
+In almost all cases, 
+
+\section{Hello World}
+
+We should begin by confirming that the C programming environment on
+your machine is reasonably sane. For this, we use the traditional
+``Hello, World'' program. Enter the following program into the text
+editor of your choice, and save it as ``hello.c''.
+
+\ccode{\texttt{hello.c}}{hello}
+
+\noindent
+Enter the following command into your terminal to compile
+the program:
+
+\bash[script,stdout]
+gcc -o hello hello.c
+\END
+
+\noindent
+and finally run the program with:
+
+\bash[script, stdout]
+./hello
+\END
+
+\noindent{}
+If you get error messages, or the output does not appear as shown,
+there is little point continuing until these issues have been
+resolved. It is assumed that anyone reading this document has
+sufficient intelligence and network bandwidth to resolve problems here
+on their own.
+
+\chapter{Compilation}
+
+Rather than looking at particular pieces of the language ---
+functions, \kw{if} statements, loops, variables --- let's look at how
+we get from a C program in text file to a running binary. Many aspects
+of C result from this process, so rather than waving our hands and
+ascribing these to some kind of digital voodoo, we'll see the
+\emph{reasons} that things are the way they are. Then hopefully the
+pieces themselves should follow fairly simply.
+
+\section{Preprocessing}
+
+\subsection{Introduction}
+
+The first stage of C compilation is preprocessing. The preprocessor is
+the tool that handles the \verb!#include<stdio.h>! line of our
+``Hello, World'' program. Usually, this line is explained to those new
+to C as `use the \kw{stdio} library, `import the \kw{stdio} module',
+or something like that.
+
+What it actually means is something like ``replace this line with the
+entire contents of the \kw{stdio.h} file''. We will come in a moment
+to how the preprocessor finds \kw{stdio.h}, but the key thing is that
+a \verb!#include! line is \emph{purely textual} --- it does not know
+anything about modules, or libraries or any of the `semantic' concepts
+we use to talk about program structure.
+
+This is true of the preprocessor in general --- when we use the
+preprocessor, we are talking about characters, and lines, and files,
+\emph{not} any kind of larger \emph{conceptual} building block. For
+this reason, we usually try to avoid using the preprocessor when
+there's another way to do something, because throwing characters
+around is about the least-reliable and hardest-to-understand way of
+doing things.
+
+However, it's pretty much impossible to write a C program that does
+anything useful without using the preprocessor, so you need to
+understand it.
+
+\subsection{Invoking the Preprocessor}
+
+Normally, the preprocessor is invoked implicitly by the compiler ---
+when we executed \verb!gcc -o hello hello.c! earlier, \kw{gcc}
+automatically ran the preprocessor (along with all of the other stages
+of the compilation).
+
+However, if we want to examine the preprocessor in more detail, we
+need a way of seeing what it does to a file on its own.
+
+\kw{gcc} can be told to output the result of preprocessing using the
+\kw{-E} flag. Try running it on your \kw{hello.c} file from earlier:
+
+\bash[script]
+gcc -E hello.c
+\END
+
+This prints lots of lines (most of them blank) to your terminal. Most
+of them aren't very interesting (you can find the whole lot --- at
+least for my machine --- in Appendix \ref{cpphello}).
+
+There are a few interesting points about this output. 
+
+\subsection{Simple Macros}
+
+\subsection{Conditional Compilation}
+
+\subsection{More Macros}
+
+\subsection{Dependencies}
+
+\section{Compilation}
+
+After preprocessing, the compiler gets a stream of text in the `real'
+C language.
+
+\section{Assembly}
+
+
+
+\section{Linking}
+
+\subsection{Static Libraries}
+
+\subsection{\kw{nm}}
+
+\kw{nm} is a tool for looking at the symbols in an object file,
+archive, or shared library.
+
+\subsection{Dynamic Libraries}
+
+\section{\kw{make}}
+
+\kw{make} is a tool which automates the building (that is,
+transformation from source code to executable) of large C programs. In
+particular, it makes it easier to do reliable \emph{incremental}
+builds --- that is, builds in which only \emph{some} of the C source
+files have changed.
+
+As we have seen, each source file (or translation unit) can be
+independently converted into an object file. For large projects ---
+with large numbers of source files --- this individual source file
+translation is the lion's share of the time taken for the build.
+
+However, we only need to perform this translation when a given source
+file has changed. This gives us an opportunity to massively speed up
+the build process, by keeping the object files from previous builds,
+and only creating new ones as necessary.
+
+To do this, we need to keep track of which source files have been
+changed since the last build, and which source files were 
+
+\chapter{Memory}
+
+\section{The C Memory Model}
+
+\subsection{Pointers}
+
+\subsection{Arrays}
+
+\subsection{Allocation}
+
+\chapter{Debugging}
+
+\subsection{\kw{printf}}
+
+\subsection{\kw{assert}}
+
+\subsection{\kw{gdb}}
+
+\chapter{Modules}
+
+\section{Single-Instance Modules}
+
+\subsection{Implementing \kw{strtok}}
+
+\section{Multiple-Instance Modules}
+
+\subsection{Multiple Instances of \kw{strtok}}
+
+\section{Dynamic Interfaces}
+
+\section{Polymorphic Interfaces}
+
+\part{Worked Examples}
+
+\part{Reference}
+
+\chapter{Syntax}
+
+\section{Built-in Types}
+
+\begin{description}
+  \item[\kw{int}]
+  \item[\kw{char}]
+  \item[\kw{short}]
+  \item[\kw{long}]
+  \item[\kw{long long}]
+  \item[\kw{float}]
+  \item[\kw{double}]
+\end{description}
+
+\section{Other Common Types}
+
+\begin{description}
+  \item[\kw{FILE}]
+  \item[\kw{size\_t}]
+  \item[\kw{time\_t}]
+\end{description}
+
+\section{Variables}
+
+\section{Control Flow}
+
+\subsection{\kw{if}}
+
+\subsection{\kw{switch}}
+
+\subsection{\kw{while}}
+
+\subsection{\kw{do}/\kw{while}}
+
+\subsection{\kw{for}}
+
+\section{Arithmetic Operators}
+
+\section{Bitwise Operators}
+
+\chapter{The Standard Library}
+
+\part{Utilities}
+
+\part{Appendices}
+
+\appendix
+
+\chapter{Output of \texttt{gcc -E hello.c}}
+\label{cpphello}
+
+\bash[script,stdout]
+gcc -E hello.c
+\END
+
+
+\end{document}
