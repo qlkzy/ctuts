@@ -33,6 +33,8 @@
 \lstset{
   basicstyle=\ttfamily,
   showstringspaces=false,
+  language=C,
+  breaklines=true,
   nolol=true
 }
 
@@ -42,10 +44,6 @@
 \newcommand{\ccode}[2]{\drmcode{C}{#1}{#2.c}}
 \newcommand{\perlcode}[2]{\drmcode{Perl}{#1}{#2.pl}}
 \newcommand{\makecode}[2]{\drmcode{Make}{#1}{#2}}
-
-\newenvironment{inlinec}
-{ \begin{minipage}[columnwidth]\begin{lstlisting}[language=C] }
-{ \end{lstlisting}\end{minipage} }
 
 \newcommand{\kw}[1]{\texttt{#1}}
 \newcommand{\key}[1]{\texttt{#1}}
@@ -147,7 +145,7 @@ files, and has essentially no understanding of a C source file.
 Generally, if there are two roughly-equivalent ways of doing something
 and one uses the preprocessor, use the other method.
 
-\subsubsection{\kw{#include}}
+\subsubsection{\kw{\#include}}
 
 The most common (or inevitable) use of the preprocessor is to
 `include' other files into a source file. We saw this in \cfile{hello.c}
@@ -159,7 +157,7 @@ First, let's see what happens if we omit this line:
 
 \ccode{\cfile{hellonoinc.c}}{hellonoinc}
 
-\bash[script,stdout]
+\bash[script,stdout,stderr]
 gcc -o hellonoinc hellonoinc.c
 \END
 
@@ -171,9 +169,10 @@ The first is that printf is declared in \cfile{stdio.h}, so removing the
 \verb!#include! line has removed the declaration. A \emph{declaration}
 is a line like:
 
-\begin{inlinec}
+\begin{lstlisting}
   int main(int argc, char *argv[])
-\end{inlinec}
+\end{lstlisting}
+
 
 \noindent
 This tells the compiler: ``there is a function \kw{main}, which
@@ -183,19 +182,19 @@ array of \kw{char} pointers''.
 A declaration can appear on its own, in which case it must be followed
 by a semicolon:
 
-\begin{inlinec}
+\begin{lstlisting}
   int main(int argc, char *argv[]);
-\end{inlinec}
+\end{lstlisting}
 
 \noindent
 In addition, any \emph{definition} is also a declaration:
 
-\begin{inlinec}
+\begin{lstlisting}
   int main(int argc, char *argv[]);
   {
     return 0;
   }
-\end{inlinec}
+\end{lstlisting}
 
 \noindent
 You can \emph{declare} something as many times as you like (so long as
@@ -203,7 +202,7 @@ all the definitions agree) but you may only \emph{define} it
 once. Don't worry too much about this now --- it will make more sense
 when we talk about modules.
 
-Back to our \verb!#include!-less program. What is happening? The
+Back to our \verb|#include|-less program. What is happening? The
 compiler has no declaration for \kw{printf}, and yet it is compiling
 the file anyway! You can run the file with:
 
@@ -225,9 +224,9 @@ backwards-compatability rule in the C standard that functions which
 are referenced without having been declared are give an
 \emph{implicit} declaration, which always has the signature:
 
-\begin{lstlisting}[language=C,escapeinside={\%\{}{\%\}}]
-  int %{name%}();
-\end{inlinec}
+\begin{lstlisting}[escapeinside={*(}{)*}]
+  int *(\textit{function-name})*();
+\end{lstlisting}
 
 \noindent
 That is, a function taking no arguments and returning an \kw{int}.
@@ -254,7 +253,7 @@ case.
 We can get the compiler to enforce our ``zero warnings'' rule by
 adding the \kw{-Werror} flag to the compiler command line:
 
-\bash[script,stdout]
+\bash[script,stdout,stderr]
 gcc -Werror -o hellonoinc hellonoinc.c
 \END
 
@@ -269,7 +268,7 @@ other dodgy constructs. These flags are \kw{-Wall} and \kw{-Wextra}
 
 Our full command line (for our original program) now looks like:
 
-\bash[script,stdout]
+\bash[script,stdout,stderr]
 gcc -Wall -Wextra -Werror -o hello hello.c
 \END
 
@@ -355,28 +354,28 @@ limited) mechanism for converting strings into tokens.
 
 \kw{strtok} is called like this:
 
-\begin{inlinec}
-  char *str = "These are some words";
-  char *tok = strtok(str, " ");
-\end{inlinec}
+%% \begin{inlinec}
+  %% char *str = "These are some words";
+  %% char *tok = strtok(str, " ");
+%% \end{inlinec}
 
 This will cause \kw{tok} to point to a string containing
 ``These''. After the first invocation, we can call \kw{strtok} like
 this:
 
-\begin{inlinec}
-  tok = strtok(NULL, " ");
-\end{inlinec}
+%% \begin{inlinec}
+  %% tok = strtok(NULL, " ");
+%% \end{inlinec}
 
 and \kw{strtok} will continue tokenising the same string (you have to
 keep providing the delimiters).
 
 If, instead, we had done this:
 
-\begin{inlinec}
-  char *str = "length,width,height;roll,pitch,yaw";
-  char *tok = strtok(str, ",;");
-\end{inlinec}
+%% \begin{inlinec}
+  %% char *str = "length,width,height;roll,pitch,yaw";
+  %% char *tok = strtok(str, ",;");
+%% \end{inlinec}
 
 And kept calling \kw{strtok} with \kw{NULL} and the same delimiters,
 we would get, in turn, the strings ``length'', ``width'', ``height'',
