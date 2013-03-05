@@ -1,10 +1,8 @@
 
+.PHONY: test
 
-.PHONY: pdf
+test: test_cust_strtok
+	./test_cust_strtok
 
-pdf:
-	./mk.sh
-
-clean:
-	-rm *.o
-	-rm hello hellonoinc
+test_cust_strtok: test_cust_strtok.c cust_strtok.c cust_strtok.h
+	gcc -o $@ $^

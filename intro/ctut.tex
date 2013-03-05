@@ -8,27 +8,16 @@
 \usepackage[cm]{fullpage}
 \usepackage[small,compact]{titlesec}
 
-\usepackage{fancyhdr}
-\fancypagestyle{fancyplain}{
-  \fancyhf{}
-  \fancyhead[L]{\leftmark}
-  \fancyfoot[R]{\thepage}
-  \fancyfoot[L]{\theauthor}
-  \setlength{\headheight}{15pt}
-  \setlength{\headsep}{15pt}
-}
-\pagestyle{fancyplain}
-
-\fancypagestyle{plain}{
-  \fancyhf{}
-  \fancyfoot[R]{\thepage}
-  \setlength{\headheight}{0pt}
-  \renewcommand{\headrulewidth}{0pt}
-}
-
 \usepackage{listings}
 \usepackage{courier}
 \usepackage{bashful}
+
+
+\newcommand{\kw}[1]{\texttt{#1}}
+\newcommand{\key}[1]{\texttt{#1}}
+\newcommand{\filename}[1]{\texttt{#1}}
+\newcommand{\tool}[1]{\texttt{#1}}
+
 
 \lstset{
   basicstyle=\ttfamily,
@@ -40,15 +29,12 @@
 
 \lstdefinestyle{drmCodeStyle}{frame=lines}
 
-\newcommand{\drmcode}[3]{\begin{minipage}{\columnwidth}\lstinputlisting[language={#1},style=drmCodeStyle,caption={#2},name={},nolol=false]{#3}\end{minipage}}
-\newcommand{\ccode}[2]{\drmcode{C}{#1}{#2.c}}
+\newcommand{\drmcode}[3]{\noindent\begin{minipage}{\columnwidth}\lstinputlisting[language={#1},style=drmCodeStyle,caption={#2},name={},nolol=false]{#3}\end{minipage}}
+\newcommand{\ccode}[2]{\drmcode{C}{#1}{#2}}
+\newcommand{\cfile}[1]{\drmcode{C}{\filename{#1}}{#1}}
 \newcommand{\perlcode}[2]{\drmcode{Perl}{#1}{#2.pl}}
 \newcommand{\makecode}[2]{\drmcode{Make}{#1}{#2}}
 
-\newcommand{\kw}[1]{\texttt{#1}}
-\newcommand{\key}[1]{\texttt{#1}}
-\newcommand{\cfile}[1]{\texttt{#1}}
-\newcommand{\tool}[1]{\texttt{#1}}
 
 \begin{document}
 
@@ -65,6 +51,22 @@ and ecosystem. It assumes that the reader is previously familiar with
 one or more programming languages, and will not appreciate yet another
 introduction to \texttt{if} statements and the strange and wonderful
 concept of a `variable'.
+
+\section{How to read this guide}
+
+I am no real fan of mysteries; therefore, when this text says ``run
+such-and-such a command'', the exact command, and the output it
+produces, are reproduced in the text (this occurs automatically during
+typesetting, and therefore \emph{ought} to be correct), except in
+those cases where the output is just far too voluminous.
+
+Similarly, source files are reproduced in their entirety, including
+all the boilerplate that is incidental to the particular topic but
+necessary to actually run the code.
+
+These considerations mean that it's possible to read this
+``passively'' --- not needing to be in front of a computer or do
+anything. However, as always, actively engaging with the.
 
 \section{Terminal Interaction}
 
@@ -96,16 +98,34 @@ echo "Hello"
 \END
 
 \noindent
-In almost all cases, 
+In almost all cases, the command and its output will be presented
+together. We will only depart from this convention when the output is
+particularly verbose, or not relevant.
+
+\section{Additional Resources}
+
+\paragraph{The C Programming Language} [Brian Kernighan, Dennis
+  Ritchie] Otherwise known as K\&R, is the the original book on the C
+language, and is considered to be the canonical 
+
+\paragraph{C: A Reference Manual} [Samuel Harbinson, Guy Steele] Is an
+excellent in-depth reference to
+
+\paragraph{Programming Pearls} [Jon Bentley] Is a great
+
+\paragraph{The Practice of Programming} [Brian Kernighan, Rob Pike]
+While not C-specific, this book covers many 
+
+\paragraph{Test-Driven Development in Embedded C} [James Grenning]
 
 \section{Hello World}
 
 We should begin by confirming that the C programming environment on
 your machine is reasonably sane. For this, we use the traditional
 ``Hello, World'' program. Enter the following program into the text
-editor of your choice, and save it as \cfile{hello.c}.
+editor of your choice, and save it as \filename{hello.c}.
 
-\ccode{\cfile{hello.c}}{hello}
+\cfile{hello.c}
 
 \noindent
 Enter the following command into your terminal to compile
@@ -148,14 +168,14 @@ and one uses the preprocessor, use the other method.
 \subsubsection{\kw{\#include}}
 
 The most common (or inevitable) use of the preprocessor is to
-`include' other files into a source file. We saw this in \cfile{hello.c}
+`include' other files into a source file. We saw this in \filename{hello.c}
 --- the \verb!#include <stdio.h>! line told the preprocessor:
-``replace this line with the contents of the file \cfile{stdio.h}, from
+``replace this line with the contents of the file \filename{stdio.h}, from
 the system search path''
 
 First, let's see what happens if we omit this line:
 
-\ccode{\cfile{hellonoinc.c}}{hellonoinc}
+\cfile{hellonoinc.c}
 
 \bash[script,stdout,stderr]
 gcc -o hellonoinc hellonoinc.c
@@ -165,14 +185,13 @@ gcc -o hellonoinc hellonoinc.c
 This complains about an ``incompatible implicit declaration of
 \kw{printf}''. What is happening here? A couple of things.
 
-The first is that printf is declared in \cfile{stdio.h}, so removing the
+The first is that printf is declared in \filename{stdio.h}, so removing the
 \verb!#include! line has removed the declaration. A \emph{declaration}
 is a line like:
 
 \begin{lstlisting}
   int main(int argc, char *argv[])
 \end{lstlisting}
-
 
 \noindent
 This tells the compiler: ``there is a function \kw{main}, which
@@ -300,9 +319,9 @@ gcc -E hello.c
 
 \noindent
 This will produce an enormous amout of guff, most of which is quite
-inscrutable. \cfile{stdio.h} pulls in a number of other files to
+inscrutable. \filename{stdio.h} pulls in a number of other files to
 provide particular types and other features it depends on (if you're
-interested, you can probably find it at \cfile{/usr/include/stdio.h}).
+interested, you can probably find it at \filename{/usr/include/stdio.h}).
 
 However, if we \tool{grep} the output, we can find what we're looking
 for:
@@ -318,7 +337,227 @@ file now contains the (correct) definition of \kw{printf}.
 
 \subsubsection{Conditional Compilation}
 
+Another important feature of the preprocessor (and one that is
+necessary for sanely using \verb!#include!) is \emph{conditional
+  compilation} - that is, only sending a block of code through to the
+compiler under certain circtumstances.
+
+We can demonstrate this with the following file:
+
+\cfile{cond.c}
+
+A few things to note about this file:
+
+\begin{itemize}
+\item It is in no way a valid C file. The preprocessor doesn't
+  particularly care about C syntax (with a couple of exceptions) and
+  does no kind of validation, either of its input or its output.
+\item We have a couple more preprocessor directives - the two lines
+  that start with \verb!#!. Any line that starts with \verb!#! is sent
+  to the preprocessor. (Traditionally, C compilers would only
+  recognise \verb!#! characters in the first column of the line; this
+  is no longer the case).
+\end{itemize}
+
+The \verb!#ifdef!/\verb!#endif! pair basically says ``only use these
+lines if a particular macro (in this case \kw{SOME\_MACRO} is defined.
+
+If we preprocess this file with \tool{gcc -E}:
+
+\bash[script,stdout]
+gcc -E cond.c
+\END
+
+\noindent
+The first thing to notice is that most of the lines have
+disappeared. Everything within the \verb!#ifdef! has disappeared,
+because the macro \kw{SOME\_MACRO} was not defined. The preprocessor
+also removes comments (because something has to) so that line has also
+disappeared.
+
+The other thing to note is that the preprocessor has inserted some
+lines that look like \verb!#! \textit{number "filename"}. These are
+instructions to the next compilation phase; they mean ``the next line
+should be treated as line \textit{number} from file
+\textit{filename}''. This information needs to pass through so that
+error messages and debug symbols can be correctly generated.
+
+With those incidental considerations out of the way, we should look at
+the actually \emph{conditional} part of this. \verb!#ifdef! depends on
+whether a particular symbol is defined; therefore, to test it, we need
+to define that symbol. We can do that by passing the \tool{-D} option
+to \tool{gcc}:
+
+\bash[script,stdout]
+gcc -E cond.c -DSOME_MACRO
+\END
+
+\noindent
+Note that the comment has still been removed, but the lines within the
+\verb!#ifdef! are now present in the output.
+
+The reason that (at least on my machine) there are now many more blank
+lines in the output is that \tool{gcc} uses linespecs (the lines
+beginning with \verb!#!) to compress long runs of blank lines. In the
+first example, there is one long run blank lines; in the second, the
+blank lines are broken up by text, and therefore none of the
+individual groups exceeds the threshold to be compressed.
+
+Extensive use of conditional compilation leads to programs which are
+completely impossible to understand, so we won't really cover it in
+much depth here. However, there is one place where conditional
+compilation is used all the time - an idiom known as an \emph{include
+  guard}.
+
+Imagine that we have the following header file (or perhaps a slightly
+longer one that does something more useful):
+
+\cfile{point.h}
+
+\noindent
+This file introduces a new type, using the \kw{typedef} keyword --- in
+this case, as simple structure to represent (presumably) a cartesian
+coordinate. This type definition allows us to write code like:
+
+\begin{lstlisting}
+  Point p;
+  p.x = 5;
+  p.y = 10;
+\end{lstlisting}
+
+\noindent
+Anyway, the point for our particular purpose is that you can only
+define a type \emph{once}. Suppose, however, that we have a couple of
+different libraries, each of which uses \kw{Point}s in its interface:
+
+\cfile{geometry.h}
+
+\cfile{drawing.h}
+
+\noindent
+As it stands, if we try to use both of these libraries from the same
+program, then we will \verb!#include! \filename{point.h} twice,
+causing the type to be redefined (as itself, but this still causes
+problems):
+
+\cfile{foo.c}
+
+\bash[script,stdout,stderr]
+gcc -o foo foo.c
+\END
+
+\noindent
+We could solve this problem by having every header file it needs, and every
+header file *they* need, and so on up the entire dependency graph. But
+that would rapidly become fantastically painful.
+
+Fortunately conditional compilation provides a simple solution to this
+problem. We wrap the entire header file in a \verb!#ifdef! (or rather
+an \verb!#ifndef!, which is its complement), and then define the macro
+that the conditional depends on \emph{inside} the conditional. Using
+this pattern, \filename{point.h} (now called \filename{pointonce.h})
+now looks like this:
+
+\cfile{pointonce.h}
+
+There is nothing particularly special about the macro name
+\verb!POINTONCE_H! --- it's just a naming convention that means that
+different files get different macros, and none of them conflict with
+other macros used for other purposes. Other naming conventions exist,
+and are sometimes used when the structure of a project means that
+different files with the same exist in different directories.
+
 \subsubsection{Macros}
+\label{sec:macros}
+
+In the previous section, we saw macros being used to control
+conditional compilation. Macros are actually much more powerful than
+this.
+
+\subsection{Value Macros}
+
+A macro can be associated 
+
+\cfile{valmacros.c}
+
+\bash[script,stdout]
+gcc -E valmacros.c
+\END
+
+
+
+\subsection{Function Macros}
+
+Macros can also take parameters; these are interpolated into the
+output more or less as one might expect.
+
+
+\cfile{maxmac.c}
+
+\bash[script,stdout]
+gcc -E maxmac.c
+\END
+
+\noindent
+It should be fairly obvious that this expansion will cause \kw{a} to
+be incremented twice in this expression, rather than once, as you
+would expect from reading the original source (the `call' to
+\kw{MAX}). This kind of issue is the reason that most coding standards
+strongly recommend minimising the use of function macros; with C99,
+\kw{inline} functions can fulfil many of the same roles without making
+a mess of the lexical structure of the program.
+
+In passing, note the extensive parenthesisation of the macro
+expansion. Macro expansions, and every reference to a macro argument,
+should be parenthesised, as it is impossible to know the precedence of
+the 
+
+Another issue that can arise with large macros (which should generally
+be avoided anyway) is that they can appear as more than one
+statement. For example, consider the following macro definition:
+
+\begin{lstlisting}
+  #define ERROR(msg) fprintf(stderr, "%s\n", msg); abort()
+\end{lstlisting}
+
+\noindent
+In many contexts, this macro definition will work perfectly
+fine. However, if used in a conditional statement without braces, like
+this:
+
+\begin{lstlisting}
+  if (!ptr)
+      ERROR("ptr must not be null");
+\end{lstlisting}
+
+\noindent
+This macro will behave unexpectedly: the error message will only print
+if \kw{ptr} is null, but \kw{abort} will \emph{always} be called.
+
+There is a C idiom to resolve this issue, as well: wrap the macro body
+in a \kw{do}...\kw{while(0)} loop, like so:
+
+\begin{lstlisting}
+#define ERROR(msg)                      \
+  do {                                  \
+      fprintf(stderr, "%s\n", msg);     \
+      abort();                          \
+  } while (0)
+\end{lstlisting}
+
+\noindent
+This macro also demonstrates the use of the the \verb!\! escape
+character to make large macros more readable: a macro must occupy a
+single ``logical line'', but placing a backslash as the \emph{last}
+character on a line will ``escape'' the following newline, allowing
+the macro to continue over multiple physical lines (note that there
+must be nothing, not even whitespace, between the backslash and the
+end of the line).
+
+
+The preprocessor has a number of other features; however, until you
+have been using C long enough to encounter them on your own, you
+probably shouldn't be using them.
 
 \subsection{Compilation}
 
@@ -339,12 +578,54 @@ file now contains the (correct) definition of \kw{printf}.
 
 \section{Debugging}
 
+\subsection{\kw{printf} debugging}
+
+The simplest approach to debugging is just to scatter \kw{printf}
+statements throughout a program. While not particularly systematic or
+rigorous, in practice this often works quite well, particularly for
+small programs and ones where the turnaround time to reproduce a bug
+is quite short.
+
+This is a fairly obvious method, with which most readers are probably
+already familiar. The only nuance to mention is that the default
+\kw{stdout} stream is, by default, buffered --- that is, \kw{printf}
+just adds characters to a buffer, which the OS flushes to the terminal
+at a time of its convenience. If the program crashes before the OS has
+flushed the characters, they will be lost, and not written to the
+terminal. This is often unhelpful when trying to use that output for
+debugging purposes; sometimes the output will arrive, and sometimes it
+will not.
+
+To avoid this issue, use \kw{fprintf}, which is exactly like
+\kw{printf}, but allows you to explicitly specify the file stream to
+which to write. This enables you to select the \kw{stderr} stream,
+which also prints to terminal, but is unbuffered:
+
+\begin{lstlisting}
+  fprintf(stderr, "This is an error message");
+\end{lstlisting}
+
+This also helps to separate error and debug messages from normal
+program output.
+
+\subsection{\kw{assert}}
+
+
+
+\subsection{\tool{gdb}}
+
+
+
+\section{Testing}
+
+
+
 \section{Modules}
 
 There are a number of other ways to create modules in C (the advantage
 of having to do everything manually is that there can be a lot of
 flexibility in how you do it). However, these two are the most common,
-so we will look at these first.
+so we will look at them here.
 
 \subsection{Single-Instance Modules}
 
@@ -354,36 +635,73 @@ limited) mechanism for converting strings into tokens.
 
 \kw{strtok} is called like this:
 
-%% \begin{inlinec}
-  %% char *str = "These are some words";
-  %% char *tok = strtok(str, " ");
-%% \end{inlinec}
+\begin{lstlisting}
+  char *str = "These are some words";
+  char *tok = strtok(str, " ");
+\end{lstlisting}
 
+\noindent
 This will cause \kw{tok} to point to a string containing
 ``These''. After the first invocation, we can call \kw{strtok} like
 this:
 
-%% \begin{inlinec}
-  %% tok = strtok(NULL, " ");
-%% \end{inlinec}
+\begin{lstlisting}
+  tok = strtok(NULL, " ");
+\end{lstlisting}
 
+\noindent
 and \kw{strtok} will continue tokenising the same string (you have to
 keep providing the delimiters).
 
 If, instead, we had done this:
 
-%% \begin{inlinec}
-  %% char *str = "length,width,height;roll,pitch,yaw";
-  %% char *tok = strtok(str, ",;");
-%% \end{inlinec}
+\begin{lstlisting}
+  char *str = "length,width,height;roll,pitch,yaw";
+  char *tok = strtok(str, ",;");
+\end{lstlisting}
 
+\noindent
 And kept calling \kw{strtok} with \kw{NULL} and the same delimiters,
 we would get, in turn, the strings ``length'', ``width'', ``height'',
 ``roll'', ``pitch'', ``yaw''.
 
 Roughly, therefore, what \kw{strtok} does is split the its first
-argument on \kw{any} of the characters in its second argument.
+argument on \emph{any} of the characters in its second argument.
+
+Note that strtok will \emph{modify} its first argument (it adds
+\verb!'\0'! characters into the string at the end of each token);
+
+\paragraph{Exercise: Write a custom \kw{strtok}}
+Given the specification above (and the copious documentation available
+for the \kw{strtok} standard library function), write your own
+implementation of \kw{strtok}. It should satisfy the same interface,
+but to avoid conflicts, call it something like \kw{stok}.
+
+\paragraph{Test Cases}
+Below is a small set of automated tests for strtok. They are not
+exhaustive, but should tell you if your implementation is
+reasonable. The tests are data-driven, so it should be fairly easy to
+add more of the same kind if you want them.
+
+\lstinputlisting[
+  caption=\filename{test\_stok.c},
+  nolol=false,
+  frame=lines]{test_stok.c}
 
 \subsection{Multiple-Instance Modules}
+
+\section{Worked Examples}
+
+\subsection{Single-Instance \kw{strtok}}
+
+\cfile{stok.h}
+
+\cfile{stok.h}
+
+\subsection{Multiple-Instance \kw{strtok}}
+
+\cfile{tok.h}
+
+\cfile{tok.c}
 
 \end{document}
